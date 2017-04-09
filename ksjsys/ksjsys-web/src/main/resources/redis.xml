@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.1.xsd
+	   http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd ">
+
+	<!--<bean id="jedisSentinelPool" class="redis.clients.jedis.JedisSentinelPool">
+		<constructor-arg index="0" value="mymaster" /> <constructor-arg index="1"> 
+		<set> <value>${redis.sentinel}</value> </set> </constructor-arg> <constructor-arg 
+		index="2" ref="jedisPoolConfig" /> </bean>-->
+
+	<bean id="shardedJedisPool" class="redis.clients.jedis.ShardedJedisPool">
+		<constructor-arg index="0" ref="jedisPoolConfig" />
+		<constructor-arg index="1">
+			<list>
+				<bean class="redis.clients.jedis.JedisShardInfo">
+					<constructor-arg value="${redis.server1.host}" />
+					<constructor-arg value="${redis.server1.port}"
+						type="int" />
+					<constructor-arg value="instance:01" />
+				</bean>
+			</list>
+		</constructor-arg>
+	</bean>
+
+	<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+		<!-- 最大连接数 -->
+		<property name="maxTotal" value="500" />
+		<!-- 最大闲置数 -->
+		<property name="maxIdle" value="200" />
+		<!-- 最大等待时间 -->
+		<property name="maxWaitMillis" value="1500" />
+		<!-- 资源耗尽时阻塞住，达到maxWaitMillis时会抛出异常 -->
+		<property name="blockWhenExhausted" value="true" />
+
+		<!-- 开启对idle对象的扫描，如果校验失败该idle对象会从池中清除 -->
+		<property name="testWhileIdle" value="true" />
+		<!-- idle对象扫描间隔 -->
+		<property name="timeBetweenEvictionRunsMillis" value="30000" />
+		<!-- 每次idle对象扫描的最大对象数 -->
+		<property name="numTestsPerEvictionRun" value="100" />
+
+		<!-- borrow一个实例时，提前进行校验操作，以保证实例均是可用的 -->
+		<property name="testOnBorrow" value="true" />
+		<!-- return资源时，不进行校验操作 -->
+		<property name="testOnReturn" value="false" />
+	</bean>
+</beans>
